@@ -24,6 +24,9 @@ While there is drawbacks of this database system, they are not as much of a conc
 
 ## Identify and discuss the key functionalities and benefits of an ORM
 
+Object Relational Mapping is used to connect Object Orientated Programming (in this project, this is Python) to relational databases (SQL). There are quite a few ORM's to choose from, with the most common being SQLalchemy, Django and SQLObject. SQLalchemy is considered one of the best due to its simplicity in syntax and ease of implementation, and is considered a mature & high functioning arcitecture for SQL with great documentation and support available, making it the best choice for someone beginning/learning to code. As ORMs handle the logic to interact with databases it allows for complex queries to be simplified and implemented faster, decreasing the total production time for the project and makes functions easily modularized by defining repeatedly used functions -- an advantage of using python over SQL. 
+
+ORM tools are also used to add a layer of security to SQL databases, for example by reducing the possibility of SQL injection attacks. By not directly handling SQL queries and instead through an ORM medium the overall reduction of SQL queries presents less opportunities for SQL injection attacks, and in combination with data validation it dramatically narrows the scope for what can actually be added to the database. It also allows for the simple implementation of user verification, allowing only those with registered accounts and permission to perform functions that would allow for SQL injections further limiting access to the database, increasing overall security. In this application, only staff member that need access to inserting data are going to recieve the permission, while others can only view it, which will be done through python to apply to SQLalcemy functions. 
 
 ----
 
@@ -35,17 +38,17 @@ url/register                | POST   | create a user
 url/login                   | POST   | login to your account
 url/users                   | GET    | get a list of all users
 url/user/[id]               | GET    | get the information of a user
-url/user/[id]               | POST   | update the information of a user
+url/user/[id]               | PUT    | update the information of a user
 url/user/[id]               | DELETE | delete a user
 url/results                 | GET    | get a list of all results
 url/results                 | POST   | insert a lab result
 url/results/[id]            | GET    | get a single lab result
-url/results/[id]            | POST   | update a lab result
+url/results/[id]            | PUT    | update a lab result
 url/results/[id]            | DELETE | delete a lab result
 url/products                | GET    | get a list of app products and info
 url/products                | POST   | make a product
 url/products/[id]           | GET    | get a single product
-url/products/[id]           | POST   | update a product's info
+url/products/[id]           | PUT    | update a product's info
 url/products/[id]           | DELETE | delete a product
 url/products_results/[id]   | GET    | get all results for a specific product.
 url/user_results/[id]       | GET    | get a list of all results from a specific user.
@@ -60,15 +63,31 @@ url/user_results/[id]       | GET    | get a list of all results from a specific
 
 ## 	Detail any third party services that your app will use
 
-* Jairo: Everything that needs to be installed in flask to run your application, anything for ORM, authentication, database connection, libraries installed are third party services. 
+
+Plan below; to be detailed when completed. 
+Flask -- Blueprint, request, Flask
+Marshamllow - fields,
+flask_sqlalchemy - SQLAlchemy
+flask_marshmallow - Marshmallow
+os
+jwt
+
+
+```* Jairo: Everything that needs to be installed in flask to run your application, anything for ORM, authentication, database connection, libraries installed are third party services. ```
+
+
 ----
 
 ## 	Describe your projects models in terms of the relationships they have with each other
 
 
+```Explain the models and relationships involved in the database based on the Flask / SQLAlchemy / etc code that you've implemented ```
+
 ----
 
 ## 	Discuss the database relations to be implemented in your application
+
+This application has three entities: Users, Lab_results and Products. Each lab result needs to be submitted by a specific user who has lab permission. Each user can do multiple lab reports, but each lab report must only be done by one user making it a one-to-many relationship. Each lab result is also done on one product, but each product can have multiple lab results making it another one-to-many relationship. 
 
 
 ----
