@@ -22,14 +22,14 @@ def seed_db():
         username = "JakebsUsername", 
         password = "jakebspassword",
         name = "Jakeb",
-        lab_permission = True
+        role = "lab"
     )
     user2 = User(
         email = "johnsemail@email.com",
         username = "JohnsUsername", 
         password = "Johnspassword",
         name = "John",
-        lab_permission = False
+        role = None
     )
 
     db.session.add(user1)

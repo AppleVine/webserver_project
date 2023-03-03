@@ -4,11 +4,13 @@ from schema.users_schema import user_schema, users_schema
 from app import db
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from app import app
+from function import *
 
 
 user = Blueprint('user', __name__, url_prefix='/users')
 
 @user.get("/")
+@check_access(roles=["lab"])
 def get_users():
     users = User.query.all()
     return users_schema.dump(users)
@@ -51,3 +53,5 @@ def login():
         return {"username": user_schema.dump(user), "token": token}
     else:
         return {"message": "Username or Password is incorrect"}
+    
+

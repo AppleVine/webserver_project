@@ -9,7 +9,7 @@ class User(db.Model):
     username = db.Column(db.String(), nullable=False, unique=True)
     password = db.Column(db.String(), nullable=False)
     name = db.Column(db.String(), nullable=False)
-    lab_permission = db.Column(db.Boolean(), default=False)
+    role = db.Column(db.String(), default=None)
 
 
    
