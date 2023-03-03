@@ -1,5 +1,5 @@
 import os
-
+from app import app
 class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     @property
@@ -8,7 +8,11 @@ class Config(object):
         if not db_url:
             raise ValueError("DATABASE_URL is not set")
         return db_url
+    
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+app.config['JWT_SECRET_KEY'] = os.getenv("ACCESS_TOKEN_SECRET_KEY")
+app_environment = os.environ.get("FLASK)DEBUG")
 
 class ProductionConfig(Config):
     DEBUG = True
@@ -20,9 +24,6 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-
-
-app_environment = os.environ.get("FLASK)DEBUG")
 
 
 if app_environment:
