@@ -18,8 +18,10 @@ def get_users():
 
 @user.get("/<int:id>")
 def get_user(id):
+    verify_jwt_in_request()
+    current_user: User = get_current_user()
     user = User.query.get(id)
-    if not user:
+    if user.id != current_user.id:
         return {"message": "There is no user with this id."}
     return user_schema.dump(user)
 ## Change to try, except: If wrong access token return incorrect credentials, if no user, no user found etc...

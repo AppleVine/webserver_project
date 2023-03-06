@@ -24,3 +24,4 @@ def check_access(roles: [Enum] = []):
             return f(*args, **kwargs)
         return decorator_function
     return decorator
+
