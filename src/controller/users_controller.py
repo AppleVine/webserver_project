@@ -10,7 +10,7 @@ from function import *
 user = Blueprint('user', __name__, url_prefix='/users')
 
 @user.get("/")
-@check_access(roles=["lab"])
+@check_access(role=["lab"])
 def get_users():
     users = User.query.all()
     return users_schema.dump(users)
@@ -18,15 +18,11 @@ def get_users():
 
 @user.get("/<int:id>")
 def get_user(id):
-    verify_jwt_in_request()
-    current_user: User = get_current_user()
-    user = User.query.get(id)
-    if user.id != current_user.id:
-        return {"message": "There is no user with this id."}
-    return user_schema.dump(user)
-## Change to try, except: If wrong access token return incorrect credentials, if no user, no user found etc...
-##############################
-
+    if check_id(id) == True or check_access_boolean(role=["lab"]) == True:
+        user = User.query.get(id)
+        return user_schema.dump(user)
+    else:
+        raise NoAuthorizationError("You are not able to view this persons details.")
 
 
 @app.route("/register", methods=["POST"])
@@ -38,7 +34,6 @@ def create_user():
         db.session.add(user)
         db.session.commit()
         return { "user": user_schema.dump(user), "token": token}
-        
     # except:
     #     return {"message": "Your information is incorrect"}
     
@@ -56,4 +51,10 @@ def login():
     else:
         return {"message": "Username or Password is incorrect"}
     
+
+
+
+
+
+
 
