@@ -6,13 +6,12 @@ class Result(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # product_code = db.Column(
-    # db.Integer(), 
-    # db.ForeignKey("products.id"), 
-    # nullable=False
-    # )
-    # product = db.relationship('Product', backref='results')
-    product_code = db.Column(db.Integer(), nullable=False)
+    product_code = db.Column(
+    db.Integer(), 
+    db.ForeignKey("products.id"), 
+    nullable=False
+    )
+    product = db.relationship('Product', backref='results')
 
     staff_id = db.Column(
         db.Integer(), 

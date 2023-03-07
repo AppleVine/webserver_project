@@ -1,7 +1,8 @@
 from flask import Blueprint
 from app import db
 from model.user import User
-from model.results import Result
+from model.result import Result
+from model.product import Product
 
 db_cmd = Blueprint("db", __name__)
 
@@ -53,9 +54,23 @@ def seed_db():
         test_time_date = "1pm 15/04/22"
     )
 
+    product1 = Product(
+        product_name = "Isopropyl Alcohol",
+        product_description = "Good for cleaning glass.",
+        product_cost = 2.50
+    )
+
+    product2 = Product(
+        product_name = "Methylated Spirits",
+        product_description = "Good for sanatizing.",
+        product_cost = 2.00
+    )
+
     db.session.add(user1)
     db.session.add(user2)
     db.session.add(results1)
     db.session.add(results2)
+    db.session.add(product1)
+    db.session.add(product2)
     db.session.commit()
     print("tables seeded")
