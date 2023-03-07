@@ -9,21 +9,6 @@ from function import *
 
 user = Blueprint('user', __name__, url_prefix='/users')
 
-@user.get("/")
-@check_access(role=["lab"])
-def get_users():
-    users = User.query.all()
-    return users_schema.dump(users)
-
-
-@user.get("/<int:id>")
-def get_user(id):
-    if check_id(id) == True or check_access_boolean(role=["lab"]) == True:
-        user = User.query.get(id)
-        return user_schema.dump(user)
-    else:
-        raise NoAuthorizationError("You are not able to view this persons details.")
-
 
 @app.route("/register", methods=["POST"])
 def create_user():
@@ -44,12 +29,30 @@ def login():
     username = user_fields["username"],
     password = user_fields["password"],
     user = db.one_or_404(db.select(User).filter_by(username=username).filter_by(password=password))
-    user = db.session.execute(db.select(User).filter_by(username=username).filter_by(password=password))
     if user:
-        token = create_access_token(identity=username)
+        token = create_access_token(identity=user_fields["username"])
         return {"username": user_schema.dump(user), "token": token}
     else:
         return {"message": "Username or Password is incorrect"}
+    
+
+@user.get("/")
+@check_access(role=["lab"])
+def get_users():
+    users = User.query.all()
+    return users_schema.dump(users)
+
+
+@user.get("/<int:id>")
+def get_user(id):
+    if check_id(id) == True or check_access_boolean(role=["lab"]) == True:
+        user = User.query.get(id)
+        return user_schema.dump(user)
+    else:
+        raise NoAuthorizationError("You are not able to view this persons details.")
+
+
+
     
 
 
