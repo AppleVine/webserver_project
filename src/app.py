@@ -11,10 +11,7 @@ app = Flask(__name__)
 jwt = JWTManager(app)
 
 
-
-
 def create_app():
-
 
     app.config.from_object("config.app_config")
 
