@@ -1,10 +1,15 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from model.user import User
+from model.product import Product
+from model.result import Result
 from schema.users_schema import user_schema, users_schema
+from schema.results_schema import results_schema, userresults_schema
 from app import db
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from app import app
 from function import *
+
+
 
 
 user = Blueprint('user', __name__, url_prefix='/users')
@@ -54,10 +59,93 @@ def get_user(id):
 
 
     
+@user.get("/user_results/<int:id>")
+def get_user_results(id):
+     
+    # user_results = db.session.query(
+    #     User, Product, Result).filter(User.id == Result.staff_id).filter(Result.product_code == Product.id).filter(Result.staff_id == id).all()
+    
+    # return jsonify(user_results)
+    # TypeError: Object of type Row is not JSON serializable
+
+    # return {"user results": user_results.dump(id)}
+    # AttributeError: 'list' object has no attribute 'dump'
+
+    # return results_schema.dump(user_results)
+    # No error, but returned nothing. 
+
+    # --------------------
+
+    # user_results = db.select(Result).filter_by(Result.staff_id == id)
+    # return result_schema.dump(user_results)
+    # TypeError: filter_by() takes 1 positional argument but 2 were given
+
+    # ------------------
+
+    # results = Result.query.get(Result.staff_id == id)
+    # return results_schema.dump(results)
+    # TypeError: Boolean value of this clause is not defined
+
+    # -----------------
+    
+
+    user_results = db.session.query(Result).join(User).join(Product).filter(Result.staff_id == id).all()
+
+    return userresults_schema.dump(user_results)
+    
+    
+    # return staff_results_schema.dump(user_results)
+    # Works to return in the results_schema. Need to make it show staff name instead of ID and show product name. 
+
+    # -----------------
+    
+    # user_results = db.session.query(Result).join(User).join(Product).filter(Result.staff_id == id).all()
+
+    # return {
+    #     "result_id": user_results.Result.id,
+    #     "staff_name": user_results.User.name,
+    # }
 
 
+    # -----------------
+
+    # query = db.session.query(User.name, Product.id, Result.id).\
+    # join(Result, User.id == Result.staff_id).\
+    # join(Product, Product.id == Result.product_code).\
+    # filter(Result.staff_id == id)
+
+    # return staff_results_schema.dump(query)
+    # return query
+
+    # -----------------
+
+    # query = db.session.query(Result).\
+    # join(User, User.id == Result.staff_id).\
+    # join(Product, Product.id == Result.product_code).\
+    # filter(Result.staff_id == id)
 
 
+    
+    # return staff_results_schema.dump(staff)
 
 
+    # -----------------
+    # user_results = db.session.query(Result).join(User).join(Product).filter(Result.staff_id == id).all()
+    # print(user_results.staff_id)
+
+    # -----------------
+
+    #     results = db.session.query(Result).filter(Result.staff_id == id).all()
+    #     user = db.session.query(User).filter(User.id == results.staff_id)
+
+    #     return {
+    #         "result_id": results.id,
+    #         "staff_id": results.staff_id,
+    #         "staff_name": user.name
+    #     }
+
+
+    # fields = ('id', 'staff_name', 'staff_id', 'product_code', 'product_code', 'specific_gravity', 'pH', 'reserve_alkalinity', 'water_content', 'test_time_date')
+
+    # -----------------
 

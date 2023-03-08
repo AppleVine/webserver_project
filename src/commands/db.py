@@ -38,7 +38,7 @@ def seed_db():
         product_code = 1,
         staff_id = 1,
         specific_gravity = 1.81,
-        pH = 13,
+        potential_hydrogen = 13,
         reserve_alkalinity = 8.2,
         water_content = 4.32,
         test_time_date = "12pm 13/04/22"
@@ -48,11 +48,45 @@ def seed_db():
         product_code = 2,
         staff_id = 2,
         specific_gravity = 1.41,
-        pH = 4,
+        potential_hydrogen = 4,
         reserve_alkalinity = 4.2,
         water_content = 3.44,
         test_time_date = "1pm 15/04/22"
     )
+
+
+    results3 = Result(
+        product_code = 1,
+        staff_id = 1,
+        specific_gravity = 1.11,
+        potential_hydrogen = 8,
+        reserve_alkalinity = 2.2,
+        water_content = 3.76,
+        test_time_date = "11am 18/04/22"
+    )
+
+
+    results4 = Result(
+        product_code = 2,
+        staff_id = 1,
+        specific_gravity = 1.00,
+        potential_hydrogen = 7,
+        reserve_alkalinity = 4.2,
+        water_content = 3.44,
+        test_time_date = "1pm 19/04/22"
+    )
+
+
+    results5 = Result(
+        product_code = 2,
+        staff_id = 2,
+        specific_gravity = 1.41,
+        potential_hydrogen = 4,
+        reserve_alkalinity = 4.2,
+        water_content = 3.44,
+        test_time_date = "1pm 15/04/22"
+    )
+
 
     product1 = Product(
         product_name = "Isopropyl Alcohol",
@@ -70,6 +104,9 @@ def seed_db():
     db.session.add(user2)
     db.session.add(results1)
     db.session.add(results2)
+    db.session.add(results3)
+    db.session.add(results4)
+    db.session.add(results5)
     db.session.add(product1)
     db.session.add(product2)
     db.session.commit()
