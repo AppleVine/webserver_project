@@ -31,7 +31,7 @@ def seed_db():
         username = "JohnsUsername", 
         password = "Johnspassword",
         name = "John",
-        role = None
+        role = "view"
     )
 
     results1 = Result(
