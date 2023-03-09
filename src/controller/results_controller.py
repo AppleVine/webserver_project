@@ -3,65 +3,18 @@ from model.user import User
 from model.product import Product
 from model.result import Result
 from schema.users_schema import user_schema, users_schema
-from schema.results_schema import userresults_schema
+from schema.results_schema import results_schema
 from app import db
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager, get_jwt
-from app import app
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import exc
+from flask_jwt_extended import create_access_token, jwt_required,  get_jwt
 
 
-user = Blueprint('user', __name__, url_prefix='/users')
+result = Blueprint('result', __name__, url_prefix='/results')
 
 
-@app.post("/register")
-def create_user():
-    try:
-        user_fields = user_schema.load(request.json)
-        user = User(**user_fields)
-        
-        db.session.add(user)
-        db.session.commit()
-
-        user_id = user.id
-        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
-
-        return { "user": user_schema.dump(user), "token": token}
-    except IntegrityError as e:
-        db.session.rollback()
-        if 'unique constraint' in str(e).lower():
-            return {"message": "You already have an account, please login instead."}, 400
-        elif 'check constraint' in str(e).lower():
-            return {"message": "Your login details do not match the constraints. Your email must be 5-30 characters long, username 5-20, password 8-30, name 2-30 and role must be 3-20."}, 400
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(e)
-        return {"message": "An error occurred while creating your account."}, 500
-
-            
-@app.post("/login")
-def login():
-    user_fields = user_schema.load(request.json)
-    username = user_fields["username"],
-    password = user_fields["password"],
-    user = db.one_or_404(db.select(User).filter_by(username=username).filter_by(password=password))
-    if user:
-        token = create_access_token(identity=user_fields["username"])
-        return {"username": user_schema.dump(user), "token": token}
-    else:
-        return {"message": "Username or Password is incorrect"}
-    
-
-@user.get("/")
-@jwt_required()
-def get_users():
-    current_user_claims = get_jwt()
-    user_role = current_user_claims.get('role')
-    if user_role != "lab":
-        return {"message": "You are not authorized to view all users information."}, 403
-    else:
-        users = User.query.all()
-        return users_schema.dump(users)
+@result.get("/")
+def get_results():
+    results = Result.query.all()
+    return results_schema.dump(results)
 
 
 @user.get("/<int:id>")
