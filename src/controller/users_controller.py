@@ -46,7 +46,8 @@ def login():
     password = user_fields["password"],
     user = db.one_or_404(db.select(User).filter_by(username=username).filter_by(password=password))
     if user:
-        token = create_access_token(identity=user_fields["username"])
+        user_id = user.id
+        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user.role})
         return {"username": user_schema.dump(user), "token": token}
     else:
         return {"message": "Username or Password is incorrect"}

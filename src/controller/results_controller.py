@@ -1,6 +1,4 @@
 from flask import Blueprint, request
-from model.user import User
-from model.product import Product
 from model.result import Result
 from schema.results_schema import results_schema, result_schema
 from app import db
@@ -23,6 +21,34 @@ def get_result(id):
         return result_schema.dump(result)
     else:
         return {"message": "This result does not exist."}
+
+
+@result.post("/")
+@jwt_required()
+def create_result():
+    current_user_claims = get_jwt()
+    user_role = current_user_claims.get('role')
+    username = current_user_claims.get('username')
+    staff_id = current_user_claims.get('user_id')
+    if user_role != "lab":
+        return {"message": "You are not authorized to view all users information."}, 403
+    else:
+        result_fields = result_schema.load(request.json)
+        result = Result(**result_fields)
+        
+        if result.staff_id != staff_id:
+            return {"message": "You do not have authorization to post on behalf of other users."}
+
+        db.session.add(result)
+        db.session.commit()
+        return { "result": result_schema.dump(result),
+                "staff_member": f"{username}"
+                }
+
+
+
+
+
 
 # @user.get("/user_results/<int:id>")
 # def get_user_results(id):
