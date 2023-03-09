@@ -5,7 +5,7 @@ from model.result import Result
 from schema.users_schema import user_schema, users_schema
 from schema.results_schema import userresults_schema
 from app import db
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager, get_jwt
 from app import app
 from function import *
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -16,14 +16,18 @@ from sqlalchemy import exc
 user = Blueprint('user', __name__, url_prefix='/users')
 
 
-@app.route("/register", methods=["POST"])
+@app.post("/register")
 def create_user():
     try:
         user_fields = user_schema.load(request.json)
         user = User(**user_fields)
-        token = create_access_token(identity=user_fields["username"])
+        
         db.session.add(user)
         db.session.commit()
+
+        user_id = user.id
+        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
+
         return { "user": user_schema.dump(user), "token": token}
     except IntegrityError as e:
         db.session.rollback()
@@ -38,7 +42,7 @@ def create_user():
 
             
 
-@app.route("/login", methods=["POST"])
+@app.post("/login")
 def login():
     user_fields = user_schema.load(request.json)
     username = user_fields["username"],
@@ -52,10 +56,16 @@ def login():
     
 
 @user.get("/")
-@check_access(role=["lab"])
+@jwt_required()
 def get_users():
-    users = User.query.all()
-    return users_schema.dump(users)
+    current_user_claims = get_jwt()
+    user_role = current_user_claims.get('role')
+    if user_role != "lab":
+        return {"message": "You are not authorized to view all users information."}, 403
+    else:
+        users = User.query.all()
+        return users_schema.dump(users)
+
 
 
 @user.get("/<int:id>")
@@ -65,6 +75,79 @@ def get_user(id):
         return user_schema.dump(user)
     else:
         raise NoAuthorizationError("You are not able to view this persons details.")
+
+
+@user.put("/<int:id>")
+@jwt_required()
+def update_user(id):
+    current_user_claims = get_jwt()
+    user_id = current_user_claims.get('user_id')
+    if user_id != id:
+        return {"message": "You are not authorized to update this user's information",
+                "current_user_id": f'{user_id}',
+                "id": f'{id}'
+                }, 403
+    else:
+        user_fields = user_schema.load(request.json)
+        user = User.query.filter_by(id=id).first()
+        if user is not None:
+            for field in user_fields:
+                setattr(user, field, user_fields[field])
+            db.session.commit()
+            token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id})
+            return { "user": user_schema.dump(user), "token": token}
+    return {"message": "User not found"}, 404
+
+
+
+
+
+# @user.put("/<int:id>")
+# @jwt_required()
+# def update_user(id):
+#     current_user_id = get_jwt_identity()
+#     if current_user_id != id:
+#         return {"message": "You are not authorized to update this user's information"}, 403
+
+#     if check_id(id) == True:
+#         user_fields = user_schema.load(request.json)
+#         user = User.query.filter_by(id=id).first()
+#         if user is not None:
+#             for field in user_fields:
+#                 setattr(user, field, user_fields[field])
+#             db.session.commit()
+#             token = create_access_token(identity=user_fields["username"])
+#             return { "user": user_schema.dump(user), "token": token}
+#     return {"message": "User not found"}, 404
+
+
+# @user.put("/<int:id>")
+# @jwt_required()
+# def update_user(id):
+#     current_user_id = get_jwt_identity()
+#     if current_user_id != id:
+#         return {"message": "You are not authorized to update this user's information"}, 403
+#     user = User.query.filter_by(id = id).first()
+#     if user:
+#         user_fields = user_schema.load(request.json)
+#         for field in user_fields:
+#             setattr(user, field, user_fields[field])
+#         db.session.commit()
+#         token = create_access_token(identity=user.username)
+#         return { "user": user_schema.dump(user), "token": token}
+
+
+
+        # except IntegrityError as e:
+        #     db.session.rollback()
+        #     if 'unique constraint' in str(e).lower():
+        #         return {"message": "You already have an account, please login instead."}, 400
+        #     elif 'check constraint' in str(e).lower():
+        #         return {"message": "Your login details do not match the constraints. Your email must be 5-30 characters long, username 5-20, password 8-30, name 2-30 and role must be 3-20."}, 400
+        # except SQLAlchemyError as e:
+        #     db.session.rollback()
+        #     print(e)
+        #     return {"message": "An error occurred while creating your account."}, 500
 
 
 
