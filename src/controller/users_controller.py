@@ -3,12 +3,13 @@ from model.user import User
 from model.product import Product
 from model.result import Result
 from schema.users_schema import user_schema, users_schema
-from schema.results_schema import results_schema, userresults_schema
+from schema.results_schema import userresults_schema
 from app import db
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from app import app
 from function import *
-
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import exc
 
 
 
@@ -17,16 +18,25 @@ user = Blueprint('user', __name__, url_prefix='/users')
 
 @app.route("/register", methods=["POST"])
 def create_user():
-    # try:
+    try:
         user_fields = user_schema.load(request.json)
         user = User(**user_fields)
         token = create_access_token(identity=user_fields["username"])
         db.session.add(user)
         db.session.commit()
         return { "user": user_schema.dump(user), "token": token}
-    # except:
-    #     return {"message": "Your information is incorrect"}
-    
+    except IntegrityError as e:
+        db.session.rollback()
+        if 'unique constraint' in str(e).lower():
+            return {"message": "You already have an account, please login instead."}, 400
+        elif 'check constraint' in str(e).lower():
+            return {"message": "Your login details do not match the constraints. Your email must be 5-30 characters long, username 5-20, password 8-30, name 2-30 and role must be 3-20."}, 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        return {"message": "An error occurred while creating your account."}, 500
+
+            
 
 @app.route("/login", methods=["POST"])
 def login():
