@@ -48,36 +48,25 @@ def create_result():
                     }
 
 
+@result.put("/<int:id>")
+@jwt_required()
+def update_result(id):
+    current_user_claims = get_jwt()
+    user_id = current_user_claims.get('user_id')   
+    result = db.session.query(Result).filter_by(id=id).first()
+    if result:
+        if result.staff_id == user_id:
+            result_fields = result_schema.load(request.json)
+            for field in result_fields:
+                setattr(result, field, result_fields[field])
+            db.session.commit()
+            return {"updated result": result_schema.dump(result)}
+        else:
+            return {"message": "You are not authorized to update this result."}
+    else:
+        return {"message": "There is no result with this id number."}
+        
 
-
-
-
-# @user.get("/user_results/<int:id>")
-# def get_user_results(id):
-#     user_results = db.session.query(Result).join(User).join(Product).filter(Result.staff_id == id).all()
-#     return userresults_schema.dump(user_results)
-
-
-# @user.put("/<int:id>")
-# @jwt_required()
-# def update_user(id):
-#     current_user_claims = get_jwt()
-#     user_id = current_user_claims.get('user_id')
-#     if user_id != id:
-#         return {"message": "You are not authorized to update this user's information",
-#                 "current_user_id": f'{user_id}',
-#                 "id": f'{id}'
-#                 }, 403
-#     else:
-#         user_fields = user_schema.load(request.json)
-#         user = User.query.filter_by(id=id).first()
-#         if user:
-#             for field in user_fields:
-#                 setattr(user, field, user_fields[field])
-#             db.session.commit()
-#             token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
-#             return { "user": user_schema.dump(user), "token": token}
-#     return {"message": "User not found"}, 404
 
 
 # @user.delete("/<int:id>")
