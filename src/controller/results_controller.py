@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from model.result import Result
 from schema.results_schema import results_schema, result_schema
 from app import db
-from flask_jwt_extended import create_access_token, jwt_required,  get_jwt
+from flask_jwt_extended import jwt_required,  get_jwt
 
 
 result = Blueprint('result', __name__, url_prefix='/results')
@@ -67,20 +67,18 @@ def update_result(id):
         return {"message": "There is no result with this id number."}
         
 
-
-
-# @user.delete("/<int:id>")
-# @jwt_required()
-# def delete_user(id):
-#     current_user_claims = get_jwt()
-#     if current_user_claims.get('user_id') == id or current_user_claims.get('role') == "lab":
-#         user = User.query.filter_by(id=id).first()
-#         if user:
-#             db.session.delete(user)
-#             db.session.commit()
-#             return {"message": "this user has been deleted."}
-#         else:
-#             return {"message": "this user does not exist."}
-#  REALIZED I WOULD NEED TO MAKE DELETE CASCADE RESULTS AND WOULD BE A BREACH OF DATA INTEGRITY. 
-
-
+@result.delete("/<int:id>")
+@jwt_required()
+def delete_result(id):
+    current_user_claims = get_jwt()
+    role = current_user_claims.get('role')
+    result = Result.query.filter_by(id=id).first()
+    if role == "lab":
+        if result:
+            db.session.delete(result)
+            db.session.commit()
+            return {"message": "This result has been deleted"}
+        else:
+            return {"message": "This result does not exist"}
+    else:
+        return {"message": "You do not have authorization to delete results."}
