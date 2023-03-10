@@ -28,8 +28,8 @@ def get_result(id):
 def create_result():
     current_user_claims = get_jwt()
     user_role = current_user_claims.get('role')
-    username = current_user_claims.get('username')
     staff_id = current_user_claims.get('user_id')
+    usersname = current_user_claims.get('name')
     if user_role != "lab":
         return {"message": "You are not authorized to view all users information."}, 403
     else:
@@ -39,11 +39,13 @@ def create_result():
         if result.staff_id != staff_id:
             return {"message": "You do not have authorization to post on behalf of other users."}
 
-        db.session.add(result)
-        db.session.commit()
-        return { "result": result_schema.dump(result),
-                "staff_member": f"{username}"
-                }
+        else:
+            db.session.add(result)
+            db.session.commit()
+            
+            return { "result": result_schema.dump(result),
+                    "staff_member": f"{usersname}"
+                    }
 
 
 

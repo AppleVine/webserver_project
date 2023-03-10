@@ -24,7 +24,7 @@ def create_user():
         db.session.commit()
 
         user_id = user.id
-        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
+        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"], "name": user_fields["name"]})
 
         return { "user": user_schema.dump(user), "token": token}
     except IntegrityError as e:
@@ -47,7 +47,7 @@ def login():
     user = db.one_or_404(db.select(User).filter_by(username=username).filter_by(password=password))
     if user:
         user_id = user.id
-        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user.role})
+        token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user.role, "name": user.name})
         return {"username": user_schema.dump(user), "token": token}
     else:
         return {"message": "Username or Password is incorrect"}
