@@ -6,7 +6,7 @@ from schema.results_schema import results_schema, result_schema, productresult_s
 from schema.products_schema import products_schema
 from app import db
 from flask_jwt_extended import jwt_required,  get_jwt
-
+from sqlalchemy.exc import IntegrityError
 
 result = Blueprint('result', __name__, url_prefix='/results')
 
@@ -33,28 +33,39 @@ def create_result():
     user_role = current_user_claims.get('role')
     staff_id = current_user_claims.get('user_id')
     usersname = current_user_claims.get('name')
+    
     if user_role != "lab":
         return {"message": "You are not authorized to view all users information."}, 403
-    else:
+
+    try:
         result_fields = result_schema.load(request.json)
         result = Result(**result_fields)
-        
         product_id = result_fields.get("product_code")
         product_search = db.session.query(Product).filter_by(id=product_id).first()
-
-        if product_search:
-            if result.staff_id != staff_id:
-                return {"message": "You do not have authorization to post on behalf of other users."}, 403
-
-            else:
-                db.session.add(result)
-                db.session.commit()
-                
-                return { "result": result_schema.dump(result),
-                        "staff_member": f"{usersname}"
-                        }
+        
+        if result.staff_id != staff_id:
+            return {"message": "You do not have authorization to post on behalf of other users."}, 403
+    
+        if not product_search:
+            return {"message": "The product you've entered does not exist."}, 400
+        
         else:
-            return {"message": "The product you've entered does not exist."}
+            db.session.add(result)
+            db.session.commit()
+                    
+            return { "result": result_schema.dump(result),
+                    "staff_member": f"{usersname}"
+                    }
+                
+    except IntegrityError:
+        db.session.rollback()
+        return {"message": "The product has failed its test, please retest."}, 400
+        
+
+        
+        
+
+
 
 
 @result.put("/<int:id>")
