@@ -100,14 +100,6 @@ def seed_db():
         product_cost = 2.00
     )
 
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.add(results1)
-    db.session.add(results2)
-    db.session.add(results3)
-    db.session.add(results4)
-    db.session.add(results5)
-    db.session.add(product1)
-    db.session.add(product2)
+    db.session.add_all([user1, user2, results1, results2, results3, results4, results5, product1, product2])
     db.session.commit()
     print("tables seeded")

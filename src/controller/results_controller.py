@@ -62,12 +62,6 @@ def create_result():
         return {"message": "The product has failed its test, please retest."}, 400
         
 
-        
-        
-
-
-
-
 @result.put("/<int:id>")
 @jwt_required()
 def update_result(id):
