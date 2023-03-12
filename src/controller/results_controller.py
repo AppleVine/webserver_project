@@ -39,23 +39,29 @@ def create_result():
         result_fields = result_schema.load(request.json)
         result = Result(**result_fields)
         
-        if result.staff_id != staff_id:
-            return {"message": "You do not have authorization to post on behalf of other users."}, 403
+        product_id = result_fields.get("product_code")
+        product_search = db.session.query(Product).filter_by(id=product_id).first()
 
+        if product_search:
+            if result.staff_id != staff_id:
+                return {"message": "You do not have authorization to post on behalf of other users."}, 403
+
+            else:
+                db.session.add(result)
+                db.session.commit()
+                
+                return { "result": result_schema.dump(result),
+                        "staff_member": f"{usersname}"
+                        }
         else:
-            db.session.add(result)
-            db.session.commit()
-            
-            return { "result": result_schema.dump(result),
-                    "staff_member": f"{usersname}"
-                    }
+            return {"message": "The product you've entered does not exist."}
 
 
 @result.put("/<int:id>")
 @jwt_required()
 def update_result(id):
     current_user_claims = get_jwt()
-    user_id = current_user_claims.get('user_id')   
+    user_id = current_user_claims.get('user_id')
     result = db.session.query(Result).filter_by(id=id).first()
     if result:
         if result.staff_id == user_id:

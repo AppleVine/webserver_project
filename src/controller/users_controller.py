@@ -69,9 +69,12 @@ def get_users():
 @jwt_required(optional=True)
 def get_user(id):
     current_user_claims = get_jwt()
+    user = User.query.get(id)
     if current_user_claims.get('user_id') == id or current_user_claims.get('role') == "lab":
-        user = User.query.get(id)
-        return user_schema.dump(user)
+        if user:
+            return user_schema.dump(user)
+        else:
+            return {"message": "No results found for this user id."}, 400
     else:
         return {"message": "You are not authorized to view this users information."}, 403
 
@@ -91,7 +94,8 @@ def get_user_results(id):
             userresult_data.append(result_dict)
         return userresult_data
     else:
-        return {"message": "No results found for that product code."}, 400
+        return {"message": "No results found for that user id."}, 400
+
 
 @user.put("/<int:id>")
 @jwt_required()
@@ -99,10 +103,7 @@ def update_user(id):
     current_user_claims = get_jwt()
     user_id = current_user_claims.get('user_id')
     if user_id != id:
-        return {"message": "You are not authorized to update this user's information",
-                "current_user_id": f'{user_id}',
-                "id": f'{id}'
-                }, 403
+        return {"message": "You are not authorized to update this user's information"}, 403
     else:
         user_fields = user_schema.load(request.json)
         user = User.query.filter_by(id=id).first()
