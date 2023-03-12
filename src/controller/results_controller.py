@@ -1,6 +1,9 @@
 from flask import Blueprint, request
+from model.user import User
+from model.product import Product
 from model.result import Result
 from schema.results_schema import results_schema, result_schema
+from schema.products_schema import products_schema
 from app import db
 from flask_jwt_extended import jwt_required,  get_jwt
 
@@ -82,3 +85,18 @@ def delete_result(id):
             return {"message": "This result does not exist"}, 400
     else:
         return {"message": "You do not have authorization to delete results."}, 403
+
+
+@result.get("/product_results/<int:id>")
+@jwt_required()
+def get_product_results(id):
+    current_user_claims = get_jwt()
+    role = current_user_claims.get('role')
+    product_results = db.session.query(Result).join(User).join(Product).filter(Result.product_code == id).all()
+    if role == "lab":
+        return results_schema.dump(product_results)
+    else:
+        return {"message": "You do not have authorization to view product results."}, 403
+    
+
+    
