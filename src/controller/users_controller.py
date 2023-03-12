@@ -3,7 +3,7 @@ from model.user import User
 from model.product import Product
 from model.result import Result
 from schema.users_schema import user_schema, users_schema
-from schema.results_schema import userresults_schema
+from schema.results_schema import userresult_schema, userresults_schema
 from app import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 from app import app
@@ -78,9 +78,20 @@ def get_user(id):
 
 @user.get("/user_results/<int:id>")
 def get_user_results(id):
-    user_results = db.session.query(Result).join(User).join(Product).filter(Result.staff_id == id).all()
-    return userresults_schema.dump(user_results)
-
+    user_results = db.session.query(Result)\
+                        .join(User)\
+                        .join(Product)\
+                        .filter(Result.staff_id == id).all()
+    if user_results:
+        userresult_data = []
+        for result in user_results:
+            result_dict = userresult_schema.dump(result)
+            result_dict['user_name'] = result.user.name
+            result_dict['product_name'] = result.product.product_name
+            userresult_data.append(result_dict)
+        return userresult_data
+    else:
+        return {"message": "No results found for that product code."}, 400
 
 @user.put("/<int:id>")
 @jwt_required()
