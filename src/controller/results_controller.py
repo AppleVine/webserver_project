@@ -20,7 +20,7 @@ def get_result(id):
     if result:
         return result_schema.dump(result)
     else:
-        return {"message": "This result does not exist."}
+        return {"message": "This result does not exist."}, 400
 
 
 @result.post("/")
@@ -37,7 +37,7 @@ def create_result():
         result = Result(**result_fields)
         
         if result.staff_id != staff_id:
-            return {"message": "You do not have authorization to post on behalf of other users."}
+            return {"message": "You do not have authorization to post on behalf of other users."}, 403
 
         else:
             db.session.add(result)
@@ -62,9 +62,9 @@ def update_result(id):
             db.session.commit()
             return {"updated result": result_schema.dump(result)}
         else:
-            return {"message": "You are not authorized to update this result."}
+            return {"message": "You are not authorized to update this result."}, 403
     else:
-        return {"message": "There is no result with this id number."}
+        return {"message": "There is no result with this id number."}, 400
         
 
 @result.delete("/<int:id>")
@@ -79,6 +79,6 @@ def delete_result(id):
             db.session.commit()
             return {"message": "This result has been deleted"}
         else:
-            return {"message": "This result does not exist"}
+            return {"message": "This result does not exist"}, 400
     else:
-        return {"message": "You do not have authorization to delete results."}
+        return {"message": "You do not have authorization to delete results."}, 403

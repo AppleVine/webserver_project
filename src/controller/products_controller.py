@@ -9,7 +9,7 @@ product = Blueprint('product', __name__, url_prefix='/products')
 
 
 @product.get("/")
-@jwt_required
+@jwt_required()
 def get_products():
     current_user_claims = get_jwt()
     user_role = current_user_claims.get('role')
@@ -17,16 +17,59 @@ def get_products():
         products = Product.query.all()
         return products_schema.dump(products)
     else:
-        return {"message": "You do not have authorization to view all product information."}
+        return {"message": "You do not have authorization to view all product information."}, 403
 
 
-@result.get("/<int:id>")
-def get_result(id):
-    result = Result.query.get(id)
-    if result:
-        return result_schema.dump(result)
+@product.get("/<int:id>")
+@jwt_required()
+def get_product(id):
+    product = Product.query.get(id)
+    current_user_claims = get_jwt()
+    user_role = current_user_claims.get('role')
+    if user_role == "lab":
+        if product:
+            return product_schema.dump(product)
+        else:
+            return {"message": "This product does not exist."}, 403
     else:
-        return {"message": "This result does not exist."}
+        return {"message": "You do not have authorization to view product information."}, 403
+
+
+@product.post("/")
+@jwt_required()
+def create_product():
+    current_user_claims = get_jwt()
+    user_role = current_user_claims.get('role')
+    if user_role != "lab":
+        return {"message": "You are not authorized to create a product."}, 403
+    else:
+        product_fields = product_schema.load(request.json)
+        product = Product(**product_fields)
+        db.session.add(product)
+        db.session.commit()
+        return {"result": product_schema.dump(product)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # @result.post("/")

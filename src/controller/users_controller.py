@@ -5,7 +5,7 @@ from model.result import Result
 from schema.users_schema import user_schema, users_schema
 from schema.results_schema import userresults_schema
 from app import db
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager, get_jwt
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 from app import app
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import exc
@@ -50,7 +50,7 @@ def login():
         token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user.role, "name": user.name})
         return {"username": user_schema.dump(user), "token": token}
     else:
-        return {"message": "Username or Password is incorrect"}
+        return {"message": "Username or Password is incorrect"}, 400
     
 
 @user.get("/")
