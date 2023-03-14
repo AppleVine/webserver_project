@@ -7,8 +7,8 @@ from schema.results_schema import userresult_schema, userresults_schema
 from app import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 from app import app
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import exc
+from sqlalchemy.exc import IntegrityError
+
 
 
 user = Blueprint('user', __name__, url_prefix='/users')
@@ -33,10 +33,7 @@ def create_user():
             return {"message": "You already have an account, please login instead."}, 400
         elif 'check constraint' in str(e).lower():
             return {"message": "Your login details do not match the constraints. Your email must be 5-30 characters long, username 5-20, password 8-30, name 2-30 and role must be 3-20."}, 400
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(e)
-        return {"message": "An error occurred while creating your account."}, 500
+
 
             
 @app.post("/login")

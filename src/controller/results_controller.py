@@ -3,7 +3,6 @@ from model.user import User
 from model.product import Product
 from model.result import Result
 from schema.results_schema import results_schema, result_schema, productresult_schema
-from schema.products_schema import products_schema
 from app import db
 from flask_jwt_extended import jwt_required,  get_jwt
 from sqlalchemy.exc import IntegrityError

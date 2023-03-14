@@ -39,7 +39,6 @@ url/login                   | POST   | login to your account
 url/users                   | GET    | get a list of all users
 url/user/[id]               | GET    | get the information of a user
 url/user/[id]               | PUT    | update the information of a user
-url/user/[id]               | DELETE | delete a user
 url/results                 | GET    | get a list of all results
 url/results                 | POST   | insert a lab result
 url/results/[id]            | GET    | get a single lab result
@@ -63,25 +62,79 @@ url/user_results/[id]       | GET    | get a list of all results from a specific
 
 ## 	Detail any third party services that your app will use
 
+Flask is imported to provide the web framework; it's a light/microframework which makes it easy to work with, and build up your web app quickly. Flask Blueprint allows you to create subdirectories, in this case I used it for all the products, results & user endpoints. 
 
-Plan below; to be detailed when completed. 
-Flask -- Blueprint, request, Flask
-Marshamllow - fields,
-flask_sqlalchemy - SQLAlchemy
-flask_marshmallow - Marshmallow
-os
-jwt
+Marshmallow is used to create the schemas for the tables, which lets the API return info in JSON in a simple manner. 
+SQLalchemy allows for the communication between python & the SQL database by translating python --> SQL statements. This made doing more complex requests much simpler and able to be done in each endpoint easily.
 
-
-```* Jairo: Everything that needs to be installed in flask to run your application, anything for ORM, authentication, database connection, libraries installed are third party services. ```
+JWT was used to create tokens, and request those tokens when authentication was needed to validate that a user was logged in. I also used it to specify additional claims for role & id so that if an endpoint required a lab role, or result was made by a specific user (and therefore only to be updated by that user), get_jwt was able to read the token for the claims neccessary. 
 
 
 ----
 
 ## 	Describe your projects models in terms of the relationships they have with each other
 
+I have three models for my tables; Products, Results & Users. These are both in relation to results, where the product_code is a foreign key to product_id, and staff_id is a foreign key for user_id. Each result can only have one product code and staff member associated to it, but each staff member and product code can have multiple results, so they are both many to one relationships. The code for these models are below. 
 
-```Explain the models and relationships involved in the database based on the Flask / SQLAlchemy / etc code that you've implemented ```
+
+```py
+class Product(db.Model):
+    __tablename__ = "products"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    product_name = db.Column(db.String(100), nullable=False, unique=True)
+    product_description = db.Column(db.String(400))
+    product_cost = db.Column(db.Float(10), nullable=False)
+```
+
+```py
+class Result(db.Model):
+    __tablename__ = "results"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    product_code = db.Column(
+    db.Integer(), 
+    db.ForeignKey("products.id"), 
+    nullable=False
+    )
+    product = db.relationship('Product', backref='results')
+
+    staff_id = db.Column(
+        db.Integer(), 
+        db.ForeignKey("users.id"), 
+        nullable=False
+        )
+    user = db.relationship('User', backref='results')
+
+    specific_gravity = db.Column(db.Numeric(scale=3), CheckConstraint('specific_gravity >= 0.8 and specific_gravity <=2.0'), nullable=False)
+    potential_hydrogen = db.Column(db.Numeric(scale=2), CheckConstraint('potential_hydrogen >= 1.0 and potential_hydrogen <=14.0'), nullable=False)
+    reserve_alkalinity = db.Column(db.Numeric(scale=3), CheckConstraint('reserve_alkalinity >= 1.0 and reserve_alkalinity <=16.0'), nullable=False)
+    water_content = db.Column(db.Numeric(scale=3), CheckConstraint('water_content >= 0.00 and water_content <=5.0'), nullable=False)
+    test_time_date = db.Column(db.String(15), nullable=False)
+```
+
+```py
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    email = db.Column(db.String(30), nullable=False, unique=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    password = db.Column(db.String(30), nullable=False)
+    name = db.Column(db.String(30), nullable=False)
+    role = db.Column(db.String(20), default=None)
+    __table_args__ = (
+        CheckConstraint('length(email) >= 5'),
+        CheckConstraint('length(username) >= 5'),
+        CheckConstraint('length(password) >= 8'),
+        CheckConstraint('length(name) >= 2'),
+        CheckConstraint('length(role) >= 3'),
+    )
+```
+
 
 ----
 
@@ -105,3 +158,4 @@ After jotting these in I realized my biggest concerns for workload are going to 
 This way helps me understanding a lot about what I need to do, the order and the progress I've made. The priority is ordered from 1 to 3, and in each wave the logical order is laid out from top to bottom making it very easy to find where I'm up to and how far I've progressed as I go along. It's ordered so every prerequisite is met beforehand, but also the more complex things are made as early as possible when there's fewer interactions to worry about when debugging, this way what I am most concerned with getting working is done as early as possible -- the specific token interactions. Afterwards in the second wave, I will have a mixture of specific token and lab-permission required, which should be easier as just a boolean value in a table, and finally the last wave is finishing up the last table and should be much easier to manage independently. 
 
 The final last items are less about creating tables, but reading specific information from multiple tables, and are left until the end as they require all tables to be filled, and more technical information about table joining that the rest do not need. Extension items are at the very end of that list. 
+    
