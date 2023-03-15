@@ -28,6 +28,7 @@ def create_user():
         token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"], "name": user_fields["name"]})
 
         return { "user": user_schema.dump(user), "token": token}
+    
     except IntegrityError as e:
         db.session.rollback()
         if 'unique constraint' in str(e).lower():
@@ -50,7 +51,7 @@ def login():
         token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user.role, "name": user.name})
         return {"username": user_schema.dump(user), "token": token}
     else:
-        return {"message": "Username or Password is incorrect"}, 400
+        return {"message": "Username or Password is incorrect, or you do not have an account."}, 400
     
 
 @user.get("/")
@@ -72,12 +73,15 @@ def get_user(id):
     current_user_claims = get_jwt()
     # This query selects a specific record from the users table, based off of the users id.
     # In SQL: SELECT * FROM users WHERE id = [id];
+    
     user = User.query.get(id)
     if current_user_claims.get('user_id') == id or current_user_claims.get('role') == "lab":
-        if user:
-            return user_schema.dump(user)
-        else:
+        
+        if not user:
             return {"message": "No results found for this user id."}, 400
+        
+        return user_schema.dump(user)
+    
     else:
         return {"message": "You are not authorized to view this users information."}, 403
 
@@ -114,18 +118,22 @@ def get_user_results(id):
 def update_user(id):
     current_user_claims = get_jwt()
     user_id = current_user_claims.get('user_id')
+    
     if user_id != id:
         return {"message": "You are not authorized to update this user's information"}, 403
-    else:
-        user_fields = user_schema.load(request.json)
-        user = User.query.filter_by(id=id).first()
-        if user:
-            for field in user_fields:
-                setattr(user, field, user_fields[field])
-            db.session.commit()
-            token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
-            return { "user": user_schema.dump(user), "token": token}
-    return {"message": "User not found"}, 404
+    
+    user_fields = user_schema.load(request.json)
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        return {"message": "User not found"}, 404
+
+    for field in user_fields:
+        setattr(user, field, user_fields[field])
+    db.session.commit()
+    token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
+    return { "user": user_schema.dump(user), "token": token}
+    
+    
 
 # This selects columns all from the user table where the id of the user matches the id provided, limited to the first option. 
 # SQL: SELECT * FROM users WHERE id = [id] LIMIT 1;

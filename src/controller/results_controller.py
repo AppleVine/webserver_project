@@ -54,13 +54,12 @@ def create_result():
         if not product_search:
             return {"message": "The product you've entered does not exist."}, 400
         
-        else:
-            db.session.add(result)
-            db.session.commit()
+        db.session.add(result)
+        db.session.commit()
                     
-            return { "result": result_schema.dump(result),
-                    "staff_member": f"{usersname}"
-                    }
+        return { "result": result_schema.dump(result),
+                "staff_member": f"{usersname}"
+                }
                 
     except IntegrityError:
         db.session.rollback()
@@ -76,17 +75,21 @@ def update_result(id):
     # This searches Results and filters for the result that has the ID provided. 
     # SQL: SELECT * FROM results WHERE id = [id] LIMIT 1;
 
-    if result:
-        if result.staff_id == user_id:
-            result_fields = result_schema.load(request.json)
-            for field in result_fields:
-                setattr(result, field, result_fields[field])
-            db.session.commit()
-            return {"updated result": result_schema.dump(result)}
-        else:
-            return {"message": "You are not authorized to update this result."}, 403
-    else:
+    if not result:
         return {"message": "There is no result with this id number."}, 400
+
+    if result.staff_id != user_id:
+        return {"message": "You are not authorized to update this result."}, 403
+
+    result_fields = result_schema.load(request.json)
+    for field in result_fields:
+        setattr(result, field, result_fields[field])
+    db.session.commit()
+    return {"updated result": result_schema.dump(result)}
+
+        
+    
+        
         
 
 @result.delete("/<int:id>")
@@ -98,15 +101,19 @@ def delete_result(id):
     # This searches Results and filters for the result that has the ID provided. 
     # SQL: SELECT * FROM results WHERE id = [id] LIMIT 1;
 
-    if role == "lab":
-        if result:
-            db.session.delete(result)
-            db.session.commit()
-            return {"message": "This result has been deleted"}
-        else:
-            return {"message": "This result does not exist"}, 400
-    else:
+    if role != "lab":
         return {"message": "You do not have authorization to delete results."}, 403
+
+    if not result:
+        return {"message": "This result does not exist"}, 400
+
+    db.session.delete(result)
+    db.session.commit()
+    return {"message": "This result has been deleted"}
+
+        
+
+        
 
 
 @result.get("/product_results/<int:id>")
@@ -115,16 +122,17 @@ def get_product_results(id):
                         .join(User)\
                         .join(Product)\
                         .filter(Result.product_code == id).all()
-    if product_results:
-        result_data = []
-        for result in product_results:
-            result_dict = productresult_schema.dump(result)
-            result_dict['user_name'] = result.user.name
-            result_dict['product_name'] = result.product.product_name
-            result_data.append(result_dict)
-        return result_data
-    else:
+    
+    if not product_results:
         return {"message": "No results found for that product code."}, 400
+
+    result_data = []
+    for result in product_results:
+        result_dict = productresult_schema.dump(result)
+        result_dict['user_name'] = result.user.name
+        result_dict['product_name'] = result.product.product_name
+        result_data.append(result_dict)
+    return result_data      
 
 # This queries all columns of the results table, getting results where the product code is = to id provided, and joins user and product table
 
