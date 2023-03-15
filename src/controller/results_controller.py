@@ -14,6 +14,8 @@ result = Blueprint('result', __name__, url_prefix='/results')
 def get_results():
     results = Result.query.all()
     return results_schema.dump(results)
+# Returns all columns of Result.
+# SQL: SELECT * FROM results;
 
 
 @result.get("/<int:id>")
@@ -23,6 +25,8 @@ def get_result(id):
         return result_schema.dump(result)
     else:
         return {"message": "This result does not exist."}, 400
+# Returns the column that's id matches the id provided.
+# SQL: SELECT * FROM results WHERE id = [id];
 
 
 @result.post("/")
@@ -41,7 +45,9 @@ def create_result():
         result = Result(**result_fields)
         product_id = result_fields.get("product_code")
         product_search = db.session.query(Product).filter_by(id=product_id).first()
-        
+        # This is to check that the product code the tester has provided exists in the database. It searches all in products for the product id provided. 
+        # SQL: SELECT * FROM products WHERE id = [product_id] LIMIT 1;
+
         if result.staff_id != staff_id:
             return {"message": "You do not have authorization to post on behalf of other users."}, 403
     
@@ -67,6 +73,9 @@ def update_result(id):
     current_user_claims = get_jwt()
     user_id = current_user_claims.get('user_id')
     result = db.session.query(Result).filter_by(id=id).first()
+    # This searches Results and filters for the result that has the ID provided. 
+    # SQL: SELECT * FROM results WHERE id = [id] LIMIT 1;
+
     if result:
         if result.staff_id == user_id:
             result_fields = result_schema.load(request.json)
@@ -86,6 +95,9 @@ def delete_result(id):
     current_user_claims = get_jwt()
     role = current_user_claims.get('role')
     result = Result.query.filter_by(id=id).first()
+    # This searches Results and filters for the result that has the ID provided. 
+    # SQL: SELECT * FROM results WHERE id = [id] LIMIT 1;
+
     if role == "lab":
         if result:
             db.session.delete(result)
@@ -113,3 +125,11 @@ def get_product_results(id):
         return result_data
     else:
         return {"message": "No results found for that product code."}, 400
+
+# This queries all columns of the results table, getting results where the product code is = to id provided, and joins user and product table
+
+# sql: 
+# SELECT * FROM results
+# JOIN users ON results.user_id = users.id
+# JOIN products ON results.product_code = products.id
+# WHERE results.product_code = [id];

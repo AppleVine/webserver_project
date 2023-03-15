@@ -18,7 +18,8 @@ def get_products():
         return products_schema.dump(products)
     else:
         return {"message": "You do not have authorization to view all product information."}, 403
-
+# Returns all columns of Products.
+# SQL: SELECT * FROM products;
 
 @product.get("/<int:id>")
 @jwt_required()
@@ -33,6 +34,8 @@ def get_product(id):
             return {"message": "This product does not exist."}, 403
     else:
         return {"message": "You do not have authorization to view product information."}, 403
+# Returns the column that's id matches the id provided.
+# SQL: SELECT * FROM products WHERE id = [id];
 
 
 @product.post("/")
@@ -62,6 +65,9 @@ def delete_product(id):
     current_user_claims = get_jwt()
     role = current_user_claims.get('role')
     product = Product.query.filter_by(id=id).first()
+    # This searches Results and filters for the product that has the ID provided. 
+    # SQL: SELECT * FROM products WHERE id = [id] LIMIT 1;
+
     if role == "lab":
         if product:
             db.session.delete(product)
@@ -79,6 +85,8 @@ def update_product(id):
     current_user_claims = get_jwt()
     user_role = current_user_claims.get('role')
     product = db.session.query(Product).filter_by(id=id).first()
+    # This searches Results and filters for the result that has the ID provided. 
+    # SQL: SELECT * FROM results WHERE id = [id] LIMIT 1;
 
     if user_role != "lab":
         return {"message": "You are not authorized to update this product."}, 403

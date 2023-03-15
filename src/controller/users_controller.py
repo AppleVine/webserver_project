@@ -24,6 +24,7 @@ def create_user():
         db.session.commit()
 
         user_id = user.id
+        
         token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"], "name": user_fields["name"]})
 
         return { "user": user_schema.dump(user), "token": token}
@@ -41,6 +42,8 @@ def login():
     user_fields = user_schema.load(request.json)
     username = user_fields["username"],
     password = user_fields["password"],
+    # This query can only return one user or 404 error, and selects a User where the username and password that are submitted are the same in the table.
+    # This is the code in SQL: SELECT * FROM users WHERE username = <username> AND password = <password>;
     user = db.one_or_404(db.select(User).filter_by(username=username).filter_by(password=password))
     if user:
         user_id = user.id
@@ -58,6 +61,7 @@ def get_users():
     if user_role != "lab":
         return {"message": "You are not authorized to view all users information."}, 403
     else:
+        # This query selects all from the user table. In SQL: SELECT * FROM users;
         users = User.query.all()
         return users_schema.dump(users)
 
@@ -66,6 +70,8 @@ def get_users():
 @jwt_required(optional=True)
 def get_user(id):
     current_user_claims = get_jwt()
+    # This query selects a specific record from the users table, based off of the users id.
+    # In SQL: SELECT * FROM users WHERE id = [id];
     user = User.query.get(id)
     if current_user_claims.get('user_id') == id or current_user_claims.get('role') == "lab":
         if user:
@@ -92,6 +98,15 @@ def get_user_results(id):
         return userresult_data
     else:
         return {"message": "No results found for that user id."}, 400
+# This query is a little more complex; it's selecting all the results, where the result's staff id is the same as the id endpoint, then joining the users table with staff_id from results = id from users.
+# Then it adds the user's name from that user table. Similarly, it can choose the product based off the product_code (results), as it's joined by id (products), and able to get that product name. The SQL is below:
+
+# SELECT results.*, users.name AS user_name, products.product_name AS product_name 
+# FROM results
+# JOIN users ON results.user_id = users.id
+# JOIN products ON results.product_id = products.id
+# WHERE results.staff_id = [id];
+
 
 
 @user.put("/<int:id>")
@@ -112,19 +127,5 @@ def update_user(id):
             return { "user": user_schema.dump(user), "token": token}
     return {"message": "User not found"}, 404
 
-
-# @user.delete("/<int:id>")
-# @jwt_required()
-# def delete_user(id):
-#     current_user_claims = get_jwt()
-#     if current_user_claims.get('user_id') == id or current_user_claims.get('role') == "lab":
-#         user = User.query.filter_by(id=id).first()
-#         if user:
-#             db.session.delete(user)
-#             db.session.commit()
-#             return {"message": "this user has been deleted."}
-#         else:
-#             return {"message": "this user does not exist."}
-#  REALIZED I WOULD NEED TO MAKE DELETE CASCADE RESULTS AND WOULD BE A BREACH OF DATA INTEGRITY. 
-
-
+# This selects columns all from the user table where the id of the user matches the id provided, limited to the first option. 
+# SQL: SELECT * FROM users WHERE id = [id] LIMIT 1;

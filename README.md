@@ -140,7 +140,7 @@ class User(db.Model):
 
 ## 	Discuss the database relations to be implemented in your application
 
-This application has three entities: Users, Lab_results and Products. Each lab result needs to be submitted by a specific user who has lab permission. Each user can do multiple lab reports, but each lab report must only be done by one user making it a one-to-many relationship. Each lab result is also done on one product, but each product can have multiple lab results making it another one-to-many relationship. 
+This application has three entities: Users, Results and Products. Each lab result needs to be submitted by a specific user who has lab permission. Each user can do multiple lab reports, but each lab report must only be done by one user making it a one-to-many relationship. Each lab result is also done on one product, but each product can have multiple lab results making it another one-to-many relationship. 
 
 
 ----
