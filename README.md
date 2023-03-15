@@ -32,25 +32,25 @@ ORM tools are also used to add a layer of security to SQL databases, for example
 
 ## Document all endpoints for your API
 
-endpoint                    | verb   | description
-------                      | ------ | -------
-url/register                | POST   | create a user
-url/login                   | POST   | login to your account
-url/users                   | GET    | get a list of all users
-url/user/[id]               | GET    | get the information of a user
-url/user/[id]               | PUT    | update the information of a user
-url/results                 | GET    | get a list of all results
-url/results                 | POST   | insert a lab result
-url/results/[id]            | GET    | get a single lab result
-url/results/[id]            | PUT    | update a lab result
-url/results/[id]            | DELETE | delete a lab result
-url/products                | GET    | get a list of app products and info
-url/products                | POST   | make a product
-url/products/[id]           | GET    | get a single product
-url/products/[id]           | PUT    | update a product's info
-url/products/[id]           | DELETE | delete a product
-url/products_results/[id]   | GET    | get all results for a specific product.
-url/user_results/[id]       | GET    | get a list of all results from a specific user.
+endpoint                    | verb   | description                                              | requirements
+------                      | ------ | -------                                                  | -------
+url/register                | POST   | create a user                                            | No requirement.
+url/login                   | POST   | login to your account                                    | To have an account, and the correct username & password.
+url/users                   | GET    | get a list of all users (and their details)              | You must be signed in with an active JWT token, as someone with the lab role. 
+url/user/[id]               | GET    | get the information of a user                            | You must be signed in with an active JWT token, as someone with the lab role. 
+url/user/[id]               | PUT    | update the information of a user                         | You must be signed in with an active JWT with that user ID. (i.e. can only edit your own information).
+url/results                 | GET    | get a list of all results                                | No requirements.
+url/results                 | POST   | insert a lab result                                      | You must be signed in with an active JWT token, with both the lab role, and the id reported in the result. 
+url/results/[id]            | GET    | get a single lab result                                  | No requirements.
+url/results/[id]            | PUT    | update a lab result                                      | You must be signed in with an active JWT token, as someone with the lab role AND be the staff member to generate that report.
+url/results/[id]            | DELETE | delete a lab result                                      | You must be signed in with an active JWT token, with both the lab role, and the id reported in the result. 
+url/products                | GET    | get a list of app products and info                      | You must be signed in with an active JWT token, as someone with the lab role. 
+url/products                | POST   | make a product                                           | You must be signed in with an active JWT token, as someone with the lab role. 
+url/products/[id]           | GET    | get a single product                                     | You must be signed in with an active JWT token, as someone with the lab role. 
+url/products/[id]           | PUT    | update a product's info                                  | You must be signed in with an active JWT token, as someone with the lab role. 
+url/products/[id]           | DELETE | delete a product                                         | You must be signed in with an active JWT token, as someone with the lab role. 
+url/products_results/[id]   | GET    | get all results for a specific product.                  | No requirements.
+url/user_results/[id]       | GET    | get a list of all results from a specific user.          | No requirements.
 
 ----
 
