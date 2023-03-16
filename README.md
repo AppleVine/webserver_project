@@ -1,3 +1,24 @@
+## Installation guide:
+
+Assuming psql & python are installed:
+1. Clone and open the repository.
+2. In psql, either create a user "lab_dev" with a password "laboratory", or use the postgres line. 
+3. If you've created lab_dev (/not using postgres), in src/.env delete the DATABASE_URL with postgres, and uncomment the lab_dev line. 
+4. Create a virtual environment, and activate it.
+5. pip install -r requirements.txt
+6. in ./src, use "flask db create", "flask db seed".
+7. Run psql: "sudo service postgresql start" (enter password if needed). 
+8. in ./src with your venv activated, type flask run. 
+9. In an API tool (postman, insomnia) create the endpoints listed below (Document all endpoints of your API) to be able to use them.
+
+
+
+DATABASE_URL=postgresql://library_dev:123@localhost:5432/postgres
+# DATABASE_URL=postgresql://postgres@localhost:5432/postgres
+
+
+
+
 ## Identification of the problem you are trying to solve by building this particular app.
 ## Why is it a problem that needs solving?
 
