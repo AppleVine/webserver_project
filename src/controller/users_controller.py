@@ -36,7 +36,6 @@ def create_user():
         elif 'check constraint' in str(e).lower():
             return {"message": "Your login details do not match the constraints. Your email must be 5-30 characters long, username 5-20, password 8-30, name 2-30 and role must be 3-20."}, 400
 
-
             
 @app.post("/login")
 def login():
@@ -112,7 +111,6 @@ def get_user_results(id):
 # WHERE results.staff_id = [id];
 
 
-
 @user.put("/<int:id>")
 @jwt_required()
 def update_user(id):
@@ -130,10 +128,8 @@ def update_user(id):
     for field in user_fields:
         setattr(user, field, user_fields[field])
     db.session.commit()
-    token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"]})
-    return { "user": user_schema.dump(user), "token": token}
-    
-    
+    token = create_access_token(identity=user_fields["username"], additional_claims={"user_id": user_id, "role": user_fields["role"], "name": user.name})
+    return { "user": user_schema.dump(user), "token": token}    
 
 # This selects columns all from the user table where the id of the user matches the id provided, limited to the first option. 
 # SQL: SELECT * FROM users WHERE id = [id] LIMIT 1;

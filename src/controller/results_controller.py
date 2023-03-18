@@ -38,7 +38,7 @@ def create_result():
     usersname = current_user_claims.get('name')
     
     if user_role != "lab":
-        return {"message": "You are not authorized to view all users information."}, 403
+        return {"message": "You are not authorized to create lab results."}, 403
 
     try:
         result_fields = result_schema.load(request.json)
@@ -88,10 +88,6 @@ def update_result(id):
     return {"updated result": result_schema.dump(result)}
 
         
-    
-        
-        
-
 @result.delete("/<int:id>")
 @jwt_required()
 def delete_result(id):
@@ -109,11 +105,7 @@ def delete_result(id):
 
     db.session.delete(result)
     db.session.commit()
-    return {"message": "This result has been deleted"}
-
-        
-
-        
+    return {"message": "This result has been deleted"} 
 
 
 @result.get("/product_results/<int:id>")

@@ -40,7 +40,6 @@ def get_product(id):
     return product_schema.dump(product)    
 
 
-
 @product.post("/")
 @jwt_required()
 def create_product():
@@ -64,22 +63,24 @@ def create_product():
 @product.delete("/<int:id>")
 @jwt_required()
 def delete_product(id):
-    current_user_claims = get_jwt()
-    role = current_user_claims.get('role')
-    product = Product.query.filter_by(id=id).first()
-    # This searches Results and filters for the product that has the ID provided. 
-    # SQL: SELECT * FROM products WHERE id = [id] LIMIT 1;
+    try:
+        current_user_claims = get_jwt()
+        role = current_user_claims.get('role')
+        product = Product.query.filter_by(id=id).first()
+        # This searches Results and filters for the product that has the ID provided. 
+        # SQL: SELECT * FROM products WHERE id = [id] LIMIT 1;
 
-    if role != "lab":
-        return {"message": "You do not have authorization to delete products."}, 403
+        if role != "lab":
+            return {"message": "You do not have authorization to delete products."}, 403
 
-    if not product:
-        return {"message": "This product does not exist"}, 400
-    
-    db.session.delete(product)
-    db.session.commit()
-    return {"message": "This product has been deleted"}
-      
+        if not product:
+            return {"message": "This product does not exist"}, 400
+        
+        db.session.delete(product)
+        db.session.commit()
+        return {"message": "This product has been deleted"}
+    except IntegrityError:
+        return {"msg": "This product has test results available, and therefore should not be deleted."}
 
 @product.put("/<int:id>")
 @jwt_required()
