@@ -1,22 +1,64 @@
 ## Installation guide:
 
-Assuming psql & python are installed:
-1. Clone and open the repository.
-2. In psql, either create a user "lab_dev" with a password "laboratory", or use the postgres line. 
-3. If you've created lab_dev (/not using postgres), in src/.env delete the DATABASE_URL with postgres, and uncomment the lab_dev line. 
-4. Create a virtual environment, and activate it.
-5. pip install -r requirements.txt
-6. in ./src, use "flask db create", "flask db seed".
-7. Run psql: "sudo service postgresql start" (enter password if needed). 
-8. in ./src with your venv activated, type flask run. 
-9. In an API tool (postman, insomnia) create the endpoints listed below (Document all endpoints of your API) to be able to use them.
+Assuming that psql and Python are already installed on your system, follow the below steps to install and set up the project:
+
+1. Clone the project repository:
+
+    ```git clone <repository_url>```
+
+2. Open the cloned repository in your terminal:
 
 
+    ```cd <repository_folder>```
 
-DATABASE_URL=postgresql://library_dev:123@localhost:5432/postgres
-# DATABASE_URL=postgresql://postgres@localhost:5432/postgres
+3. (a) If you just want to use postgres user & database, skip to step 5.
+
+3. In psql, create a new user with the following command:
+
+    ```sql
+    CREATE USER lab_dev WITH PASSWORD '123'; 
+    ```
+    Alternatively, if you have a different username or password preference, replace the 'lab_dev' and '123' with your desired values.
 
 
+4. In the project's src/.env file, update the DATABASE_URL variable with your database URL. For example:
+
+    ```DATABASE_URL=postgresql://lab_dev:123@localhost:5432/<database_name>```
+    
+    Replace <database_name> with the name of the database you want to use for the project.
+
+5. Create a new virtual environment for the project:
+    
+    ```python3 -m venv venv```
+
+6. Activate the virtual environment:
+
+    ```source venv/bin/activate```
+
+
+7. Install the required Python packages using pip:
+
+    ```pip install -r requirements.txt```
+
+
+8. Create the database tables and seed data:
+
+    ```flask db create```
+
+    ```flask db seed```
+
+
+9. Start the PostgreSQL service:
+
+    ```sudo service postgresql start```
+    
+10. If prompted for a password, enter your system's admin password.
+
+11. Start the Flask server:
+
+    ```flask run```
+
+12. Open an API tool like Postman or Insomnia and create the API endpoints you want to use.
 
 
 ## Identification of the problem you are trying to solve by building this particular app.
@@ -45,9 +87,11 @@ While there is drawbacks of this database system, they are not as much of a conc
 
 ## Identify and discuss the key functionalities and benefits of an ORM
 
-Object Relational Mapping is used to connect Object Orientated Programming (in this project, this is Python) to relational databases (SQL). There are quite a few ORM's to choose from, with the most common being SQLalchemy, Django and SQLObject. SQLalchemy is considered one of the best due to its simplicity in syntax and ease of implementation, and is considered a mature & high functioning arcitecture for SQL with great documentation and support available, making it the best choice for someone beginning/learning to code. As ORMs handle the logic to interact with databases it allows for complex queries to be simplified and implemented faster, decreasing the total production time for the project and makes functions easily modularized by defining repeatedly used functions -- an advantage of using python over SQL. 
+Object Relational Mapping is used to connect Object Orientated Programming (in this project, this is Python) to relational databases (SQL). There are quite a few ORM's to choose from, with the most common being SQLalchemy, Django and SQLObject. SQLalchemy is considered one of the best due to its simplicity in syntax and ease of implementation, and is considered a mature & high functioning arcitecture for SQL with great documentation and support available, making it the best choice for someone beginning/learning to code. Due to it have an Object-Orientated approach, the ORM is easier and more intuitive to understand for those using it and creating portable code that can be reused for repetitive tasks. As ORMs handle the logic to interact with databases it allows for complex queries to be simplified and implemented faster, decreasing the total production time for the project and makes functions easily modularized by defining repeatedly used functions -- an advantage of using python over SQL. 
 
-ORM tools are also used to add a layer of security to SQL databases, for example by reducing the possibility of SQL injection attacks. By not directly handling SQL queries and instead through an ORM medium the overall reduction of SQL queries presents less opportunities for SQL injection attacks, and in combination with data validation it dramatically narrows the scope for what can actually be added to the database. It also allows for the simple implementation of user verification, allowing only those with registered accounts and permission to perform functions that would allow for SQL injections further limiting access to the database, increasing overall security. In this application, only staff member that need access to inserting data are going to recieve the permission, while others can only view it, which will be done through python to apply to SQLalcemy functions. 
+ORM tools are also used to add a layer of security to SQL databases, for example by reducing the possibility of SQL injection attacks. By not directly handling SQL queries and instead through an ORM medium the overall reduction of SQL queries presents less opportunities for SQL injection attacks, and in combination with data validation it dramatically narrows the scope for what can actually be added to the database. The reduction in queries minimizes the number of data transfers between the application and database therefore also reducing the performance requirement for the application to run. 
+
+It also allows for the simple implementation of user verification, allowing only those with registered accounts and permission to perform functions that would allow for SQL injections further limiting access to the database, increasing overall security. In this application, only staff member that need access to inserting data are going to recieve the permission, while others can only view it, which will be done through python to apply to SQLalcemy functions. 
 
 ----
 
@@ -95,7 +139,7 @@ JWT was used to create tokens, and request those tokens when authentication was 
 
 ## 	Describe your projects models in terms of the relationships they have with each other
 
-I have three models for my tables; Products, Results & Users. These are both in relation to results, where the product_code is a foreign key to product_id, and staff_id is a foreign key for user_id. Each result can only have one product code and staff member associated to it, but each staff member and product code can have multiple results, so they are both many to one relationships. The code for these models are below. 
+I have three models for my tables; Products, Results & Users. These are both in relation to results, where the product_code is a foreign key to product_id, and staff_id is a foreign key for user_id. In this table, if you look at product_code = ... you can see it is a foreign key to products.id (Product table, attribute=id) and that it's a relationship to Product, with a back reference to results, making the reference from the related table (Product) to the original table (result). The reason they're both backreferenced to Result is that the result calls upon those relationships when being created, while the user and products can both be made independently. Each result can only have one product code and staff member associated to it, but each staff member and product code can have multiple results, so they are both many to one relationships. The code for these models are below. 
 
 
 ```py
@@ -161,8 +205,13 @@ class User(db.Model):
 
 ## 	Discuss the database relations to be implemented in your application
 
-This application has three entities: Users, Results and Products. Each lab result needs to be submitted by a specific user who has lab permission. Each user can do multiple lab reports, but each lab report must only be done by one user making it a one-to-many relationship. Each lab result is also done on one product, but each product can have multiple lab results making it another one-to-many relationship. 
+This application has three entities: Users, Results and Products. 
 
+The Product class represents information of various products the laboratory produces, where it's attributes kept are based on the product information; name, cost description etc. It keeps an id number to be unique referred to as the product's code. 
+
+The User table represents the information stored of each user; their details to log in, their name, and importantly their role which determines which permissions the user has access to. All users have a unique ID number which allows to give further restrictions in permissions (i.e. each user can only edit their own details, results etc), and allows for unique identification of ownership for results. 
+
+The Result table represents the tests done on products to determine if they are viable, along with relationships to both Product & User. Each result must be submitted by a User with lab permission, that way the data is verified by a trusted worker. Each result must be done by a User, but each User can do multiple results, therefore making it a one-to-many relationship. Similarly, each product can be tested multiple times, but each test is done on one product making another one-to-many relationship. The Result table will need to pull the information from both Product & User, as Product and User can be created without dependencies however the Result *must* have a User & Product to test it, and be tested. 
 
 ----
 
@@ -179,4 +228,5 @@ After jotting these in I realized my biggest concerns for workload are going to 
 This way helps me understanding a lot about what I need to do, the order and the progress I've made. The priority is ordered from 1 to 3, and in each wave the logical order is laid out from top to bottom making it very easy to find where I'm up to and how far I've progressed as I go along. It's ordered so every prerequisite is met beforehand, but also the more complex things are made as early as possible when there's fewer interactions to worry about when debugging, this way what I am most concerned with getting working is done as early as possible -- the specific token interactions. Afterwards in the second wave, I will have a mixture of specific token and lab-permission required, which should be easier as just a boolean value in a table, and finally the last wave is finishing up the last table and should be much easier to manage independently. 
 
 The final last items are less about creating tables, but reading specific information from multiple tables, and are left until the end as they require all tables to be filled, and more technical information about table joining that the rest do not need. Extension items are at the very end of that list. 
-    
+
+Link: https://trello.com/b/keGqR7PD/t2a3-jakeb-lab
